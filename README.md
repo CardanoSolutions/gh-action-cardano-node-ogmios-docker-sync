@@ -35,20 +35,20 @@ strategy:
 steps:
 - uses: actions/checkout@v2
 
-- id: date
+- id: date-time
   shell: bash
   run: |
-      echo "::set-output name=value::$(/bin/date -u "+%Y%m%d")"
+      echo "::set-output name=value::$(/bin/date -u "+%Y%m%d-%H%M%S")"
 
 - uses: actions/cache@v2
   with:
-    path: ${{ runner.temp }}/db
-    key: cardano-node-${{ matrix.network }}-${{ steps.date.outputs.value }}
+    path: ${{ runner.temp }}/db-${{ matrix.network }}
+    key: cardano-node-${{ matrix.network }}-${{ steps.date-time.outputs.value }}
     restore-keys: |
       cardano-node-${{ matrix.network }}
 
 - uses: CardanoSolutions/cardano-node-ogmios-docker-sync@v1
   with:
-    db-dir: ${{ runner.temp }}/db
+    db-dir: ${{ runner.temp }}/db-${{ matrix.network }}
     network: ${{ matrix.network }}
 ```
