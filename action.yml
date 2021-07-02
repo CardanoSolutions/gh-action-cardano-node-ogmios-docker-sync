@@ -1,5 +1,8 @@
 name: cardano-node-ogmios-docker-sync
 description: Synchronize cardano-node-ogmios using Docker
+branding:
+  icon: 'refresh-ccw'
+  color: 'blue'
 inputs:
   container-name:
     description: Docker container name
