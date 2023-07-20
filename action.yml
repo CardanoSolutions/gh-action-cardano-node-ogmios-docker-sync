@@ -26,6 +26,10 @@ inputs:
     description: Ogmios version
     required: false
     default: latest
+  synchronization-level:
+    description: A percentage between 0 and 1 of the target synchronization level.
+    required: false
+    default: 1
 runs:
   using: composite
   steps:
@@ -44,7 +48,7 @@ runs:
       run: |
         docker run -d --name ${{ inputs.container-name }} -p ${{ inputs.ogmios-port }}:1337 -v ${{ inputs.db-dir }}:/db ${{ steps.docker-image.outputs.value }}
         sleep 3
-        ./scripts/wait-for-sync.sh ${{ inputs.ogmios-port }} 1
+        ./scripts/wait-for-sync.sh ${{ inputs.ogmios-port }} ${{ inputs.synchronization-level }}
       shell: bash
 
     - name: 🧹 Cleanup
