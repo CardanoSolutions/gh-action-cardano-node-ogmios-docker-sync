@@ -51,7 +51,7 @@ runs:
         THRESHOLD: ${{ inputs.synchronization-level }}
       run: |
         set -eo pipefail
-        docker run -d --name ${{ inputs.container-name }} -p ${{ inputs.ogmios-port }}:1337 -v ${{ inputs.db-dir }}:/db ${{ steps.docker-image.outputs.value }}
+        docker run -d --name ${{ inputs.container-name }} -p ${{ inputs.ogmios-port }}:1337 -v ${{ inputs.db-dir }}:/db ${{ steps.docker-image.outputs.image }}
         sleep 3
         URL=http://localhost:$OGMIOS_PORT/health
         echo "Begin synchronization, target: $THRESHOLD"
@@ -82,5 +82,5 @@ runs:
       run: |
         docker stop ${{ inputs.container-name }}
         docker rm ${{ inputs.container-name }}
-        docker rmi ${{ steps.docker-image.outputs.value }}
+        docker rmi ${{ steps.docker-image.outputs.image }}
       shell: bash
