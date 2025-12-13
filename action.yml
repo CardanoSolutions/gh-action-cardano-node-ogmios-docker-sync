@@ -55,7 +55,7 @@ runs:
         sleep 10
         URL=http://localhost:$OGMIOS_PORT/health
 
-        TIMEOUT_SECONDS=30 # seconds
+        TIMEOUT_SECONDS=60 # seconds
         start_ts="$(date +%s)"
         deadline=$((start_ts + TIMEOUT_SECONDS))
 
@@ -64,6 +64,7 @@ runs:
           now="$(date +%s)"
           if (( now >= deadline )); then
             echo "ERROR: Server not ready after ${TIMEOUT_SECONDS}s."
+            docker logs --tail 200 ${{ inputs.container-name }} || true
             exit 1
           fi
 
@@ -91,6 +92,7 @@ runs:
               continue
             else
               echo "ERROR: unexpected response from /health endpoint: $HEALTH"
+              docker logs --tail 200 ${{ inputs.container-name }} || true
               exit 1
             fi
           fi
@@ -108,7 +110,6 @@ runs:
 
     - name: 🧹 Cleanup
       run: |
-        docker logs --tail 200 ${{ inputs.container-name }} || true
         docker stop ${{ inputs.container-name }}
         docker rm ${{ inputs.container-name }}
         docker rmi ${{ steps.docker-image.outputs.image }}
