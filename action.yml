@@ -54,6 +54,28 @@ runs:
         docker run -d --name ${{ inputs.container-name }} -p ${{ inputs.ogmios-port }}:1337 -v ${{ inputs.db-dir }}:/db ${{ steps.docker-image.outputs.image }}
         sleep 10
         URL=http://localhost:$OGMIOS_PORT/health
+
+        TIMEOUT_SECONDS=30 # seconds
+        start_ts="$(date +%s)"
+        deadline=$((start_ts + TIMEOUT_SECONDS))
+
+        # Await server before making further requests.
+        while true; do
+          now="$(date +%s)"
+          if (( now >= deadline )); then
+            echo "ERROR: Server not ready after ${TIMEOUT_SECONDS}s."
+            exit 1
+          fi
+
+          if curl -fsS --max-time 5 "$URL" >/dev/null 2>&1; then
+            echo "Server is running."
+            break
+          fi
+
+          printf "."
+          sleep 5
+        done
+
         echo "Begin synchronization, target: $THRESHOLD"
         echo -n ""
         for (( ;; ))
@@ -68,7 +90,7 @@ runs:
               sleep 5
               continue
             else
-              echo "error: unexpected response from /health endpoint: $HEALTH"
+              echo "ERROR: unexpected response from /health endpoint: $HEALTH"
               exit 1
             fi
           fi
@@ -86,6 +108,7 @@ runs:
 
     - name: 🧹 Cleanup
       run: |
+        docker logs --tail 200 ${{ inputs.container-name }} || true
         docker stop ${{ inputs.container-name }}
         docker rm ${{ inputs.container-name }}
         docker rmi ${{ steps.docker-image.outputs.image }}
