@@ -30,6 +30,10 @@ inputs:
     description: A percentage between 0 and 1 of the target synchronization level.
     required: false
     default: 1
+  warm-up-timeout:
+    description: A timeout (in seconds) after which the action fails if the node+ogmios isn't responding.
+    required: false
+    default: 300
 runs:
   using: composite
   steps:
@@ -55,7 +59,7 @@ runs:
         sleep 10
         URL=http://localhost:$OGMIOS_PORT/health
 
-        TIMEOUT_SECONDS=60 # seconds
+        TIMEOUT_SECONDS=${{ inputs.warm-up-timeout }}
         start_ts="$(date +%s)"
         deadline=$((start_ts + TIMEOUT_SECONDS))
 
