@@ -51,7 +51,7 @@ runs:
     - name: Override Topology configuration
       shell: bash
       run: |
-        cat >topology.json <<'JSON'
+        cat >${{ runner.temp }}/topology.json <<'JSON'
         {
           "localRoots": [
             {
