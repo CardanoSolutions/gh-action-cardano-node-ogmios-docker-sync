@@ -48,6 +48,30 @@ runs:
         docker pull ${{ steps.docker-image.outputs.image }}
       shell: bash
 
+    - name: Override Topology configuration
+      shell: bash
+      run: |
+        cat >topology.json <<'JSON'
+        {
+          "localRoots": [
+            {
+              "accessPoints": [],
+              "advertise": false,
+              "trustable": false,
+              "valency": 1
+            }
+          ],
+          "peerSnapshotFile": "peer-snapshot.json",
+          "publicRoots": [
+            {
+              "accessPoints": [],
+              "advertise": false
+            }
+          ],
+          "useLedgerAfterSlot": 93830456
+        }
+        JSON
+
     - name: ⟲ Sync
       shell: bash
       env:
@@ -55,7 +79,14 @@ runs:
         THRESHOLD: ${{ inputs.synchronization-level }}
       run: |
         set -eo pipefail
-        docker run -d --name ${{ inputs.container-name }} -p ${{ inputs.ogmios-port }}:1337 -v ${{ inputs.db-dir }}:/db ${{ steps.docker-image.outputs.image }}
+
+        docker run -d \
+          --name ${{ inputs.container-name }} \
+          -p ${{ inputs.ogmios-port }}:1337 \
+          -v ${{ inputs.db-dir }}:/db \
+          -v "${{ runner.temp }}/topology.json:/config/cardano-node/topology.json:ro" \
+          ${{ steps.docker-image.outputs.image }}
+
         sleep 10
         URL=http://localhost:$OGMIOS_PORT/health
 
